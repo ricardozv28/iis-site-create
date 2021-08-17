@@ -79,15 +79,20 @@ jobs:
    steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: IIS stop
-      uses: 'im-open/iis-service-action@v1.0.1'
-      with:
-        server: ${{ env.server }}
-        service-account-id: ${{ secrets.iis_admin_user }}
-        service-account-password: ${{ secrets.iis_admin_password }}
-        app-pool-name: ${{ env.pool-name }}
-        action: 'app-pool-stop'
-        server-public-key: ${{ env.cert-path }}
+    - name: Create Web Site
+        uses: im-open/iis-site-create@v1.0.0
+        with:
+          server: '${{ secrets.iis_server }}'
+          website-name: '${{env.WEBSITE_NAME}}'
+          app-pool-name: '${{ secrets.pool-name }}'
+          website-host-header: '${{env.WEBSITE_HOST_HEADER}}'
+          website-path: '${{env.DEPLOYMENT_FOLDER}}'
+          website-cert-path: '${{ env.WEBSITE_CERT_PATH}}'
+          website-cert-password: '${{ secrets.site_cert_password }}'
+          website-cert-friendly-name: '${{env.WEBSITE_CERT_FRIENDLY_NAME}}'
+          service-account-id: '${{secrets.iis_admin_user}}'
+          service-account-password: '${{secrets.iis_admin_password}}'
+          server-public-key: ${{ env.IIS_SERVER_CERT_PATH}}
 
   ...
 ```
