@@ -30,7 +30,7 @@ inputs:
     default: ''
     required: true
   website-cert-password:
-    description: 'The private cert file password'
+    description: "The private cert's file password"
     default: ''
     required: true
   service-account-id:
@@ -39,7 +39,7 @@ inputs:
   service-account-password:
     description: 'The service account password'
     required: true
-  server-public-key:
+  server-public-key-path:
     description: 'Path to remote server public ssl key'
     required: true
 
@@ -63,4 +63,4 @@ runs:
           -website_cert_friendly_name '${{ inputs.website-cert-friendly-name }}' `
           -user_id '${{ inputs.service-account-id }}' `
           -password $secure_password `
-          -cert_path '${{ inputs.server-public-key }}'
+          -cert_path '${{ inputs.server-public-key-path }}'

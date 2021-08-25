@@ -21,14 +21,14 @@ This action will create an on-premises IIS website
 | `website-path`               | true        | The local directory location of the web site, i.e., "c:\inetpub\webapp" |
 | `website-cert-path`          | true        | The private cert file path for site https binding                       |
 | `website-cert-friendly-name` | true        | The private cert's friendly name                                        |
-| `website-cert-password`      | true        | The private cert's file password'                                       |
+| `website-cert-password`      | true        | The private cert's file password                                        |
 | `service-account-id`         | true        | The service account name                                                |
 | `service-account-password`   | true        | The service account password                                            |
-| `server-public-key`          | true        | Path to remote server public ssl key                                    |
+| `server-public-key-path`     | true        | Path to remote server public ssl key                                    |
 
 ## Prerequisites
 
-The IIS site create action uses Web Services for Management, [WSMan], and Windows Remote Management, [WinRM], to create remote administrative sessions. Because of this, Windows OS GitHubs Actions Runners, `runs-on: [windows-2019]`, must be used. If the IIS server target is on a local network that is not publicly available, then specialized self hosted runners, `runs-on: [self-hosted, windows-2019]`,  will need to be used to broker commands to the server.
+The IIS site create action uses Web Services for Management, [WSMan], and Windows Remote Management, [WinRM], to create remote administrative sessions. Because of this, Windows Actions Runners, `runs-on: [windows-2019]`, must be used. If the IIS server target is on a local network that is not publicly available, then specialized self-hosted runners, `runs-on: [self-hosted, windows-2019]`, will need to be used to broker commands to the server.
 
 Inbound secure WinRm network traffic (TCP port 5986) must be allowed from the GitHub Actions Runners virtual network so that remote sessions can be received.
 
@@ -69,12 +69,20 @@ Prep the remote IIS server to accept WinRM management calls.  In general the IIS
 ...
 
 jobs:
-  stop-iis:
+  create-iis-site:
    runs-on: [windows-2019]
    env:
       server: 'iis-server.domain.com'
-      pool-name: 'website-pool'
-      cert-path: './server-cert'
+      website-name: 'Default Website'
+      apo-pool-name: 'website-pool'
+      website-host-header: '*.defaultsite.com'
+      website-path: 'c:\inetpub\wwwroot'
+      website-cert-path: './src/site_cert.pfx'
+      website-cert-password: '${{ secrets.site_cert_password }}'
+      website-cert-friendly-name: '*.defaultsite.com'
+      service-account-id: '${{secrets.iis_admin_user}}'
+      service-account-password: '${{secrets.iis_admin_password}}'
+      server-public-key-path: './iis_cert.cer'
 
    steps:
     - name: Checkout
@@ -82,19 +90,18 @@ jobs:
     - name: Create Web Site
         uses: im-open/iis-site-create@v1.0.0
         with:
-          server: '${{ secrets.iis_server }}'
-          website-name: '${{env.WEBSITE_NAME}}'
-          app-pool-name: '${{ secrets.pool-name }}'
-          website-host-header: '${{env.WEBSITE_HOST_HEADER}}'
-          website-path: '${{env.DEPLOYMENT_FOLDER}}'
-          website-cert-path: '${{ env.WEBSITE_CERT_PATH}}'
-          website-cert-password: '${{ secrets.site_cert_password }}'
-          website-cert-friendly-name: '${{env.WEBSITE_CERT_FRIENDLY_NAME}}'
-          service-account-id: '${{secrets.iis_admin_user}}'
-          service-account-password: '${{secrets.iis_admin_password}}'
-          server-public-key: ${{ env.IIS_SERVER_CERT_PATH}}
-
-  ...
+          server: '${{ env.server }}'
+          website-name: '${{ env.website-name }}'
+          app-pool-name: '${{ env.app-pool-name }}'
+          website-host-header: '${{ env.website-host-header}}'
+          website-path: '${{ env.website-path }}'
+          website-cert-path: '${{ env.website-cert-path }}'
+          website-cert-password: '${{ env.website-cert-password }}'
+          website-cert-friendly-name: '${{ env.website-cert-friendly-name }}'
+          service-account-id: '${{ env.service-account-id }}'
+          service-account-password: '${{ env.service-account-password }}'
+          server-public-key-path: ${{ env.server-public-key-path}}
+...
 ```
 
 ## Code of Conduct
