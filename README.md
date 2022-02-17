@@ -8,25 +8,25 @@ This action will create an on-premises IIS website
 - [Prerequisites](#prerequisites)
 - [Example](#example)
 - [Contributing](#contributing)
-	- [Incrementing the Version](#incrementing-the-version)
+  - [Incrementing the Version](#incrementing-the-version)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
 ## Inputs
 
-| Parameter                    | Is Required | Description                                                             |
-| ---------------------------- | ----------- | ----------------------------------------------------------------------- |
-| `server`                     | true        | The name of the target server                                           |
-| `website-name`               | true        | The name of the website                                                 |
-| `app-pool-name`              | true        | The name of the app pool                                                |
-| `website-host-header`        | true        | The host-header the web site should respond to                          |
-| `website-path`               | true        | The local directory location of the web site, i.e., "c:\inetpub\webapp" |
-| `website-cert-path`          | true        | The private cert file path for site https binding                       |
-| `website-cert-friendly-name` | true        | The private cert's friendly name                                        |
-| `website-cert-password`      | true        | The private cert's file password                                        |
-| `service-account-id`         | true        | The service account name                                                |
-| `service-account-password`   | true        | The service account password                                            |
-| `server-public-key-path`     | true        | Path to remote server public ssl key                                    |
+| Parameter                    | Is Required | Description                                                                                                      |
+| ---------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| `server`                     | true        | The name of the target server                                                                                    |
+| `website-name`               | true        | The name of the website                                                                                          |
+| `app-pool-name`              | true        | The name of the app pool                                                                                         |
+| `website-host-header`        | true        | The host-header the web site should respond to                                                                   |
+| `website-path`               | true        | The local directory location of the web site, i.e., "c:\inetpub\webapp"                                          |
+| `website-cert-path`          | true        | The private cert file path for site https binding                                                                |
+| `website-cert-friendly-name` | true        | The private cert's friendly name                                                                                 |
+| `website-cert-password`      | true        | The private cert's file password                                                                                 |
+| `service-account-id`         | true        | The service account name                                                                                         |
+| `service-account-password`   | true        | The service account password                                                                                     |
+| `server-cert-path`           | false       | Path to remote server public ssl cert, only necessary if the cert is not already installed on the actions runner |
 
 ## Prerequisites
 
@@ -84,13 +84,12 @@ jobs:
       website-cert-friendly-name: '*.defaultsite.com'
       service-account-id: '${{secrets.iis_admin_user}}'
       service-account-password: '${{secrets.iis_admin_password}}'
-      server-public-key-path: './iis_cert.cer'
 
    steps:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Create Web Site
-        uses: im-open/iis-site-create@v1.0.0
+        uses: im-open/iis-site-create@v2.0.0
         with:
           server: '${{ env.server }}'
           website-name: '${{ env.website-name }}'
@@ -102,7 +101,6 @@ jobs:
           website-cert-friendly-name: '${{ env.website-cert-friendly-name }}'
           service-account-id: '${{ env.service-account-id }}'
           service-account-password: '${{ env.service-account-password }}'
-          server-public-key-path: ${{ env.server-public-key-path}}
 ...
 ```
 

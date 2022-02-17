@@ -19,7 +19,7 @@ Param(
     [string]$user_id,
     [parameter(Mandatory = $true)]
     [SecureString]$password,
-    [parameter(Mandatory = $true)]
+    [parameter(Mandatory = $false)]
     [string]$cert_path
 )
 
@@ -31,8 +31,10 @@ Write-Output $display_action
 $credential = [PSCredential]::new($user_id, $password)
 $so = New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck
 
-Write-Output "Importing remote server cert..."
-Import-Certificate -Filepath $cert_path -CertStoreLocation 'Cert:\LocalMachine\Root'
+if ($cert_path.Length -gt 0) {
+    Write-Output "Importing remote server cert..."
+    Import-Certificate -Filepath $cert_path -CertStoreLocation 'Cert:\LocalMachine\Root'
+}
 
 if (!$website_name -or !$website_path -or !$website_host_header -or !$website_cert_path -or !$website_cert_password -or !$website_cert_friendly_name) {
     "Create website requires site name, host header, website cert, website cert password, website cert friendly name, and directory path"
