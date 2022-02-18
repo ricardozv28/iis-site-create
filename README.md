@@ -14,19 +14,18 @@ This action will create an on-premises IIS website
 
 ## Inputs
 
-| Parameter                    | Is Required | Description                                                                                                      |
-| ---------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| `server`                     | true        | The name of the target server                                                                                    |
-| `website-name`               | true        | The name of the website                                                                                          |
-| `app-pool-name`              | true        | The name of the app pool                                                                                         |
-| `website-host-header`        | true        | The host-header the web site should respond to                                                                   |
-| `website-path`               | true        | The local directory location of the web site, i.e., "c:\inetpub\webapp"                                          |
-| `website-cert-path`          | true        | The private cert file path for site https binding                                                                |
-| `website-cert-friendly-name` | true        | The private cert's friendly name                                                                                 |
-| `website-cert-password`      | true        | The private cert's file password                                                                                 |
-| `service-account-id`         | true        | The service account name                                                                                         |
-| `service-account-password`   | true        | The service account password                                                                                     |
-| `server-cert-path`           | false       | Path to remote server public ssl cert, only necessary if the cert is not already installed on the actions runner |
+| Parameter                    | Is Required | Description                                                             |
+| ---------------------------- | ----------- | ----------------------------------------------------------------------- |
+| `server`                     | true        | The name of the target server                                           |
+| `website-name`               | true        | The name of the website                                                 |
+| `app-pool-name`              | true        | The name of the app pool                                                |
+| `website-host-header`        | true        | The host-header the web site should respond to                          |
+| `website-path`               | true        | The local directory location of the web site, i.e., "c:\inetpub\webapp" |
+| `website-cert-path`          | true        | The private cert file path for site https binding                       |
+| `website-cert-friendly-name` | true        | The private cert's friendly name                                        |
+| `website-cert-password`      | true        | The private cert's file password                                        |
+| `service-account-id`         | true        | The service account name                                                |
+| `service-account-password`   | true        | The service account password                                            |
 
 ## Prerequisites
 
