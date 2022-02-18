@@ -8,7 +8,7 @@ This action will create an on-premises IIS website
 - [Prerequisites](#prerequisites)
 - [Example](#example)
 - [Contributing](#contributing)
-	- [Incrementing the Version](#incrementing-the-version)
+  - [Incrementing the Version](#incrementing-the-version)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
@@ -26,7 +26,6 @@ This action will create an on-premises IIS website
 | `website-cert-password`      | true        | The private cert's file password                                        |
 | `service-account-id`         | true        | The service account name                                                |
 | `service-account-password`   | true        | The service account password                                            |
-| `server-public-key-path`     | true        | Path to remote server public ssl key                                    |
 
 ## Prerequisites
 
@@ -84,13 +83,12 @@ jobs:
       website-cert-friendly-name: '*.defaultsite.com'
       service-account-id: '${{secrets.iis_admin_user}}'
       service-account-password: '${{secrets.iis_admin_password}}'
-      server-public-key-path: './iis_cert.cer'
 
    steps:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Create Web Site
-        uses: im-open/iis-site-create@v1.0.0
+        uses: im-open/iis-site-create@v2.0.0
         with:
           server: '${{ env.server }}'
           website-name: '${{ env.website-name }}'
@@ -102,7 +100,6 @@ jobs:
           website-cert-friendly-name: '${{ env.website-cert-friendly-name }}'
           service-account-id: '${{ env.service-account-id }}'
           service-account-password: '${{ env.service-account-password }}'
-          server-public-key-path: ${{ env.server-public-key-path}}
 ...
 ```
 
