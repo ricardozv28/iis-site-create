@@ -47,8 +47,16 @@ runs:
       id: action
       shell: powershell
       run: |
-        $secure_password = ConvertTo-SecureString -String "${{ inputs.service-account-password }}" -AsPlainText -Force
-        $secure_cert_password = ConvertTo-SecureString -String "${{ inputs.website-cert-password }}" -AsPlainText -Force
+        $deployment_password_string = @'
+        ${{ inputs.service-account-password }}
+        '@
+        $secure_password = ConvertTo-SecureString -String $deployment_password_string -AsPlainText -Force
+
+        $cert_password_string = @'
+        ${{ inputs.website-cert-password }}
+        '@
+        $secure_cert_password = ConvertTo-SecureString -String $cert_password_string -AsPlainText -Force
+
         ${{ github.action_path }}/iis_action.ps1 `
           -server '${{ inputs.server }}' `
           -website_name '${{ inputs.website-name }}' `
