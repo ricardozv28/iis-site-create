@@ -1,6 +1,6 @@
 name: 'IIS Service Action'
 
-description: 'This action will create an on-premises IIS website'
+description: 'This action will create an IIS website on a target Windows Server'
 
 inputs:
   server:
