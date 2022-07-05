@@ -8,36 +8,39 @@ inputs:
     required: true
   website-name:
     description: 'The name of the website'
-    default: ''
     required: true
   app-pool-name:
     description: 'The name of the app pool'
     required: true
   website-host-header:
     description: 'The host-header the web site should respond to'
-    default: ''
     required: true
   website-path:
     description: 'The local directory location of the web site, i.e., "c:\inetpub\webapp"'
-    default: ''
     required: true
   website-cert-path:
     description: 'The private cert file path for site https binding'
     default: ''
-    required: true
+    required: false
   website-cert-friendly-name:
     description: "The private cert's friendly name"
     default: ''
-    required: true
+    required: false
   website-cert-password:
     description: "The private cert's file password"
     default: ''
+    required: false
+  app-pool-service-account-id:
+    description: 'The service account name used for the operation of the web site'
+    required: false
+  app-pool-service-account-secret:
+    description: 'The service account secret used for the operation of the web site'
+    required: false
+  deployment-service-account-id:
+    description: 'The service account id used to create the IIS site'
     required: true
-  service-account-id:
-    description: 'The service account name'
-    required: true
-  service-account-password:
-    description: 'The service account password'
+  deployment-service-account-secret:
+    description: 'The service account secret used to create the IIS site'
     required: true
 
 runs:
@@ -48,14 +51,27 @@ runs:
       shell: powershell
       run: |
         $deployment_password_string = @'
-        ${{ inputs.service-account-password }}
+        ${{ inputs.deployment-service-account-secret }}
         '@
-        $secure_password = ConvertTo-SecureString -String $deployment_password_string -AsPlainText -Force
+        $secure_deployment_password = ConvertTo-SecureString -String $deployment_password_string -AsPlainText -Force
 
-        $cert_password_string = @'
-        ${{ inputs.website-cert-password }}
-        '@
+        if('${{ inputs.website-cert-password }}'.Length -eq 0) {
+          $cert_password_string = 'none'
+        } else {
+          $cert_password_string = @'
+          ${{ inputs.website-cert-password }}
+          '@
+        }
         $secure_cert_password = ConvertTo-SecureString -String $cert_password_string -AsPlainText -Force
+
+        if('${{ inputs.app-pool-service-account-secret }}'.Length -eq 0){
+          $app_pool_password_string = @'
+          ${{ inputs.app-pool-service-account-secret }}
+          '@
+        } else {
+          $app_pool_password_string = 'none'
+        }
+        $app_pool_password = ConvertTo-SecureString -String $app_pool_password_string -AsPlainText -Force
 
         ${{ github.action_path }}/iis_action.ps1 `
           -server '${{ inputs.server }}' `
@@ -66,5 +82,7 @@ runs:
           -website_cert_path '${{ inputs.website-cert-path }}' `
           -website_cert_password $secure_cert_password `
           -website_cert_friendly_name '${{ inputs.website-cert-friendly-name }}' `
-          -user_id '${{ inputs.service-account-id }}' `
-          -password $secure_password
+          -app_pool_user_id '${{ inputs.app-pool-service-account-id }}' `
+          -app_pool_user_secret $app_pool_password `
+          -deploy_user_id '${{ inputs.deployment-service-account-id }}' `
+          -deploy_user_secret $secure_deployment_password

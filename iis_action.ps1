@@ -15,10 +15,14 @@ Param(
     [SecureString]$website_cert_password,
     [parameter(Mandatory = $true)]
     [string]$website_cert_friendly_name,
+    [parameter(Mandatory = $false)]
+    [string]$app_pool_user_id,
+    [parameter(Mandatory = $false)]
+    [SecureString]$app_pool_user_secret,
     [parameter(Mandatory = $true)]
-    [string]$user_id,
+    [string]$deploy_user_id,
     [parameter(Mandatory = $true)]
-    [SecureString]$password
+    [SecureString]$deploy_user_secret
 )
 
 $display_action = 'IIS Site Create'
@@ -26,8 +30,11 @@ $display_action_past_tense = 'IIS Site Created'
 
 Write-Output $display_action
 
-$credential = [PSCredential]::new($user_id, $password)
+$credential = [PSCredential]::new($deploy_user_id, $deploy_user_secret)
 $so = New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck
+
+$app_pool_credential = [PSCredential]::new($app_pool_user_id, $app_pool_user_secret)
+$set_app_pool_secret = $app_pool_credential.GetNetworkCredential().Password
 
 if (!$website_name -or !$website_path -or !$website_host_header -or !$website_cert_path -or !$website_cert_password -or !$website_cert_friendly_name) {
     "Create website requires site name, host header, website cert, website cert password, website cert friendly name, and directory path"
@@ -38,21 +45,31 @@ if (!$website_name -or !$website_path -or !$website_host_header -or !$website_ce
 [Byte[]]$website_cert_data = Get-Content -Path $website_cert_path -Encoding Byte
 
 $script = {
-    $website_cert_store = 'cert:\LocalMachine\My'
-    $cert_file_parts = $($Using:website_cert_path).Replace('/', '\').Split('\')
-    $cert_file_name = $cert_file_parts[$cert_file_parts.Length - 1]
-    $cert_file_path = (Join-Path -Path $Using:website_path -ChildPath $cert_file_name)
-
     # create app pool if it doesn't exist
     if (Get-IISAppPool -Name $Using:app_pool_name) {
         Write-Output "The App Pool $Using:app_pool_name already exists"
     }
     else {
         Write-Output "Creating app pool $Using:app_pool_name"
-        $app_pool = New-WebAppPool -Name $Using:app_pool_name
-        $app_pool.autoStart = $true
-        $app_pool.managedPipelineMode = "Integrated"
-        $app_pool | Set-Item
+
+        $system_path = [Environment]::GetFolderPath('System')
+        $appcmd = '$system_path\inetsrv\AppCmd.exe'
+
+        # Create the app pool
+        $app_pool_args = @('add', 'apppool', "/name:$Using:app_pool_name")
+        & $appcmd $app_pool_args
+
+        if ($app_pool_user_id.Length -gt 0) {
+            $app_pool_args = @(
+                'set',
+                'apppool',
+                $Using:app_pool_name,
+                "/processModel.identityType:SpecificUser",
+                "-processModel.userName:$Using:app_pool_user_id",
+                "-processModel.password:$Using:set_app_pool_secret"
+            )
+            & $appcmd $app_pool_args
+        }
         Write-Output "App pool $Using:app_pool_name has been created"
     }
 
@@ -63,16 +80,6 @@ $script = {
     else {
         New-Item -ItemType Directory -Path $Using:website_path -Force
         Write-Output "Created folder $Using:website_path"
-    }
-
-    #write out the cert
-    Set-Content -Path $cert_file_path -Value $Using:website_cert_data -Encoding Byte
-    $imported_cert = Get-ChildItem -Path $website_cert_store | where { $_.FriendlyName -eq $Using:website_cert_friendly_name }
-    if (!$imported_cert) {
-        $imported_cert = Import-PfxCertificate `
-            -CertStoreLocation $website_cert_store `
-            -FilePath $cert_file_path `
-            -Password $Using:website_cert_password
     }
 
     # create the site if it doesn't exist
@@ -98,7 +105,23 @@ $script = {
         $cert_parts = $website_cert_store.Split('\')
         $location = $cert_parts[$cert_parts.Length - 1]
 
-        $ssl_binding.AddSslCertificate($imported_cert.Thumbprint, $location)
+        #write out the cert
+        if ($Using:website_cert_path.Length -gt 0) {
+            $website_cert_store = 'cert:\LocalMachine\My'
+            $cert_file_parts = $($Using:website_cert_path).Replace('/', '\').Split('\')
+            $cert_file_name = $cert_file_parts[$cert_file_parts.Length - 1]
+            $cert_file_path = (Join-Path -Path $Using:website_path -ChildPath $cert_file_name)
+
+            Set-Content -Path $cert_file_path -Value $Using:website_cert_data -Encoding Byte
+            $imported_cert = Get-ChildItem -Path $website_cert_store | where { $_.FriendlyName -eq $Using:website_cert_friendly_name }
+            if (!$imported_cert) {
+                $imported_cert = Import-PfxCertificate `
+                    -CertStoreLocation $website_cert_store `
+                    -FilePath $cert_file_path `
+                    -Password $Using:website_cert_password
+            }
+            $ssl_binding.AddSslCertificate($imported_cert.Thumbprint, $location)
+        }
     }
 }
 
