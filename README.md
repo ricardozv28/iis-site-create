@@ -1,6 +1,6 @@
 # IIS Website Create
 
-This action will create an on-premises IIS website
+This action will create an IIS website on a target Windows Server
 
 ## Index <!-- omit in toc -->
 
@@ -88,7 +88,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Create Web Site
-        uses: im-open/iis-site-create@v2.0.2
+        uses: im-open/iis-site-create@v3.0.0
         with:
           server: '${{ env.server }}'
           website-name: '${{ env.website-name }}'
