@@ -14,18 +14,20 @@ This action will create an IIS website on a target Windows Server
 
 ## Inputs
 
-| Parameter                    | Is Required | Description                                                             |
-| ---------------------------- | ----------- | ----------------------------------------------------------------------- |
-| `server`                     | true        | The name of the target server                                           |
-| `website-name`               | true        | The name of the website                                                 |
-| `app-pool-name`              | true        | The name of the app pool                                                |
-| `website-host-header`        | true        | The host-header the web site should respond to                          |
-| `website-path`               | true        | The local directory location of the web site, i.e., "c:\inetpub\webapp" |
-| `website-cert-path`          | true        | The private cert file path for site https binding                       |
-| `website-cert-friendly-name` | true        | The private cert's friendly name                                        |
-| `website-cert-password`      | true        | The private cert's file password                                        |
-| `service-account-id`         | true        | The service account name                                                |
-| `service-account-password`   | true        | The service account password                                            |
+| Parameter                           | Is Required | Description                                                             |
+| ----------------------------------- | ----------- | ----------------------------------------------------------------------- |
+| `server`                            | true        | The name of the target server                                           |
+| `website-name`                      | true        | The name of the website                                                 |
+| `app-pool-name`                     | true        | The name of the app pool                                                |
+| `website-host-header`               | true        | The host-header the web site should respond to                          |
+| `website-path`                      | true        | The local directory location of the web site, i.e., "c:\inetpub\webapp" |
+| `website-cert-path`                 | false       | The private cert file path for site https binding                       |
+| `website-cert-friendly-name`        | false       | The private cert's friendly name                                        |
+| `website-cert-password`             | false       | The private cert's file password                                        |
+| `app-pool-service-account-id`       | false       | The service account name used for the operation of the web site         |
+| `app-pool-service-account-secret`   | false       | The service account secret used for the operation of the web site       |
+| `deployment-service-account-id`     | true        | The service account id used to create the IIS site                      |
+| `deployment-service-account-secret` | true        | The service account secret used to create the IIS site                  |
 
 ## Prerequisites
 
@@ -81,14 +83,12 @@ jobs:
       website-cert-path: './src/site_cert.pfx'
       website-cert-password: '${{ secrets.site_cert_password }}'
       website-cert-friendly-name: '*.defaultsite.com'
-      service-account-id: '${{secrets.iis_admin_user}}'
-      service-account-password: '${{secrets.iis_admin_password}}'
 
    steps:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Create Web Site
-        uses: im-open/iis-site-create@v3.0.0
+        uses: im-open/iis-site-create@v3.0.1
         with:
           server: '${{ env.server }}'
           website-name: '${{ env.website-name }}'
@@ -98,8 +98,11 @@ jobs:
           website-cert-path: '${{ env.website-cert-path }}'
           website-cert-password: '${{ env.website-cert-password }}'
           website-cert-friendly-name: '${{ env.website-cert-friendly-name }}'
-          service-account-id: '${{ env.service-account-id }}'
-          service-account-password: '${{ env.service-account-password }}'
+          app-pool-service-account-id: '${{ env.APP_POOL_SA_ID }}'
+          app-pool-service-account-secret: '${{ env.APP_POOL_SA_SECRET }}'
+          deployment-service-account-id: '${{ secrets.DEPLOYMENT_SA_ID }}'
+          deployment-service-account-secret: '${{ secrets.DEPLOYMENT_SA_SECRET }}'
+
 ...
 ```
 
