@@ -100,8 +100,8 @@ jobs:
           website-cert-friendly-name: '${{ env.website-cert-friendly-name }}'
           app-pool-service-account-id: '${{ env.APP_POOL_SA_ID }}'
           app-pool-service-account-secret: '${{ env.APP_POOL_SA_SECRET }}'
-          deployment-service-account-id: '${{ secrets.ON_PREM_DEPLOYMENT_SA_ID }}'
-          deployment-service-account-secret: '${{ secrets.ON_PREM_DEPLOYMENT_SA_SECRET }}'
+          deployment-service-account-id: '${{ secrets.DEPLOYMENT_SA_ID }}'
+          deployment-service-account-secret: '${{ secrets.DEPLOYMENT_SA_SECRET }}'
 
 ...
 ```
