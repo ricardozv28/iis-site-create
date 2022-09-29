@@ -88,7 +88,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Create Web Site
-        uses: im-open/iis-site-create@v3.0.1
+        uses: im-open/iis-site-create@v3.0.2
         with:
           server: '${{ env.server }}'
           website-name: '${{ env.website-name }}'
