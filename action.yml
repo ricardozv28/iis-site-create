@@ -59,15 +59,15 @@ runs:
           $cert_password_string = 'none'
         } else {
           $cert_password_string = @'
-          ${{ inputs.website-cert-password }}
-          '@
+        ${{ inputs.website-cert-password }}
+        '@
         }
         $secure_cert_password = ConvertTo-SecureString -String $cert_password_string -AsPlainText -Force
 
         if('${{ inputs.app-pool-service-account-secret }}'.Length -eq 0){
           $app_pool_password_string = @'
-          ${{ inputs.app-pool-service-account-secret }}
-          '@
+        ${{ inputs.app-pool-service-account-secret }}
+        '@
         } else {
           $app_pool_password_string = 'none'
         }
