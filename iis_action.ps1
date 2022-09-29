@@ -9,9 +9,9 @@ Param(
     [string]$website_host_header,
     [parameter(Mandatory = $true)]
     [string]$website_path,
-    [parameter(Mandatory = $true)]
+    [parameter(Mandatory = $false)]
     [string]$website_cert_path,
-    [parameter(Mandatory = $true)]
+    [parameter(Mandatory = $false)]
     [SecureString]$website_cert_password,
     [parameter(Mandatory = $true)]
     [string]$website_cert_friendly_name,
@@ -40,9 +40,6 @@ if (!$website_name -or !$website_path -or !$website_host_header -or !$website_ce
     "Create website requires site name, host header, website cert, website cert password, website cert friendly name, and directory path"
     exit 1
 }
-
-# Get the key data
-[Byte[]]$website_cert_data = Get-Content -Path $website_cert_path -Encoding Byte
 
 $script = {
     # create app pool if it doesn't exist
@@ -102,26 +99,33 @@ $script = {
 
         $ssl_binding = Get-WebBinding -Name $Using:website_name | where { $_.Protocol -eq 'https' }
 
+        $website_cert_store = 'cert:\LocalMachine\My'
         $cert_parts = $website_cert_store.Split('\')
         $location = $cert_parts[$cert_parts.Length - 1]
 
+        $imported_cert = Get-ChildItem -Path $website_cert_store | where { $_.FriendlyName -eq $Using:website_cert_friendly_name }
+        
         #write out the cert
-        if ($Using:website_cert_path.Length -gt 0) {
-            $website_cert_store = 'cert:\LocalMachine\My'
+        if (!$imported_cert -and $Using:website_cert_path.Length -gt 0) {
+            # Get the key data
+            [Byte[]]$website_cert_data = Get-Content -Path $website_cert_path -Encoding Byte
+            
             $cert_file_parts = $($Using:website_cert_path).Replace('/', '\').Split('\')
             $cert_file_name = $cert_file_parts[$cert_file_parts.Length - 1]
             $cert_file_path = (Join-Path -Path $Using:website_path -ChildPath $cert_file_name)
 
             Set-Content -Path $cert_file_path -Value $Using:website_cert_data -Encoding Byte
-            $imported_cert = Get-ChildItem -Path $website_cert_store | where { $_.FriendlyName -eq $Using:website_cert_friendly_name }
-            if (!$imported_cert) {
-                $imported_cert = Import-PfxCertificate `
-                    -CertStoreLocation $website_cert_store `
-                    -FilePath $cert_file_path `
-                    -Password $Using:website_cert_password
-            }
-            $ssl_binding.AddSslCertificate($imported_cert.Thumbprint, $location)
+            $imported_cert = Import-PfxCertificate `
+                -CertStoreLocation $website_cert_store `
+                -FilePath $cert_file_path `
+                -Password $Using:website_cert_password
         }
+        
+        if (!$imported_cert) {
+            throw "Unable to find certificate"
+        }
+        
+        $ssl_binding.AddSslCertificate($imported_cert.Thumbprint, $location)
     }
 }
 
